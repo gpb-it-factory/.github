@@ -1,6 +1,7 @@
 name: Auto Assign Random Reviewer
 on:
   pull_request:
+    branches: [ $default-branch ]
     types: [opened]
 
 jobs:
@@ -8,11 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Fetch Team Members
         id: fetch_team_members
-        uses: actions/github-script@v4
+        uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -25,7 +26,7 @@ jobs:
             return { randomMemberLogin: randomMember.login };
 
       - name: Assign Random Reviewer
-        uses: pullreminders/assign-reviewer-action@v2
+        uses: pullreminders/assignee-to-reviewer-action@v1.0.7
         with:
           reviewers: ${{ steps.fetch_team_members.outputs.randomMemberLogin }}
         env:
