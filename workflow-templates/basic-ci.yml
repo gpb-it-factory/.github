@@ -1,0 +1,32 @@
+name: Auto Assign Random Reviewer
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  assign_random_reviewer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Fetch Team Members
+        id: fetch_team_members
+        uses: actions/github-script@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const teamName = 'team';
+            const { data: team } = await github.teams.getByName({ org: 'gpb-it-factory', team_slug: teamName });
+            const { data: members } = await github.teams.listMembers({ team_id: team.id, role: 'member' });
+            const randomMember = members[Math.floor(Math.random() * members.length)];
+            console.log(randomMember.login);
+            console.log(randomMember);
+            return { randomMemberLogin: randomMember.login };
+
+      - name: Assign Random Reviewer
+        uses: pullreminders/assign-reviewer-action@v2
+        with:
+          reviewers: ${{ steps.fetch_team_members.outputs.randomMemberLogin }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
